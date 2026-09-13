@@ -1,5 +1,5 @@
 {
-  "name": "tanstack_start_ts",
+  "name": "deposito-araucaria-official-site",
   "private": true,
   "sideEffects": false,
   "type": "module",
@@ -90,4 +90,4 @@
     "typescript-eslint": "^8.56.1",
     "vite": "8.1.5"
   }
-}\n
+}
