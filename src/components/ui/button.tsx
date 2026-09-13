@@ -12,6 +12,7 @@ const buttonVariants = cva(
         default: "bg-primary text-primary-foreground hover:bg-primary/90",
         brand: "bg-primary text-primary-foreground font-extrabold uppercase hover:bg-primary/90",
         dark: "bg-foreground text-background font-extrabold uppercase hover:bg-foreground/90",
+        heroOutline: "border border-header-foreground text-header-foreground font-extrabold uppercase hover:bg-header-foreground hover:text-header",
         headerGhost: "text-header-foreground hover:bg-header-accent hover:text-primary",
         headerIcon: "text-header-foreground hover:bg-header-accent hover:text-primary",
         destructive: "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90",
