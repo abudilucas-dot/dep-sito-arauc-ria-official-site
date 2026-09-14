@@ -1,3 +1,53 @@
-import { createFileRoute } from "@tanstack/react-router"; import { PageShell } from "@/components/site/PageShell"; import { Button } from "@/components/ui/button"; import { useStore } from "@/lib/store"; import facade from "@/assets/store-facade.jpg";
-export const Route=createFileRoute("/sobre")({head:()=>({meta:[{title:"Sobre | Depósito Araucária"},{name:"description",content:"Conheça o Depósito Araucária, seu parceiro para obra e reforma em Sarandi-PR."},{property:"og:title",content:"Sobre | Depósito Araucária"},{property:"og:description",content:"Qualidade, variedade e atendimento de verdade."},{property:"og:type",content:"website"},{name:"twitter:card",content:"summary_large_image"}]}),component:About});
-function About(){const {company}=useStore();return <PageShell><section className="page-section"><div className="container-site grid items-center gap-10 lg:grid-cols-2"><img src={facade} alt="Fachada ilustrativa do Depósito Araucária" className="aspect-[4/3] size-full rounded-lg object-cover" width={1200} height={900}/><div><p className="eyebrow">Depósito Araucária</p><h1 className="display-title">MAIS QUE UMA LOJA.<br/><span>UM PARCEIRO PARA SUA OBRA.</span></h1><p className="mt-6 text-lg text-muted-foreground">Qualidade, variedade e atendimento de verdade para quem constrói, reforma ou cuida da casa.</p><div className="mt-8 flex flex-wrap gap-3"><Button asChild variant="brand" size="lg"><a href={company?.google_maps_url||"https://maps.google.com"} target="_blank" rel="noreferrer">Como chegar</a></Button><Button asChild variant="outline" size="lg"><a href={company?.instagram_url||"https://instagram.com/depositoaraucaria"} target="_blank" rel="noreferrer">Ver Instagram</a></Button></div></div></div></section></PageShell>}
+import { createFileRoute } from "@tanstack/react-router"; 
+import { PageShell } from "@/components/site/PageShell"; 
+import { Button } from "@/components/ui/button"; 
+import { useStore } from "@/lib/store"; 
+import facade from "@/assets/store-facade.jpg";
+
+export const Route = createFileRoute("/sobre")({
+  head: () => ({
+    meta: [
+      { title: "Sobre | Depósito Araucária" },
+      { name: "description", content: "Conheça o Depósito Araucária, seu parceiro para obra e reforma em Sarandi-PR." },
+      { property: "og:title", content: "Sobre | Depósito Araucária" },
+      { property: "og:description", content: "Qualidade, variedade e atendimento de verdade." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" }
+    ]
+  }),
+  component: About
+});
+
+function About() {
+  const { company } = useStore();
+  return (
+    <PageShell>
+      <section className="page-section">
+        <div className="container-site grid items-center gap-10 lg:grid-cols-2">
+          <img 
+            src={facade} 
+            alt={`Fachada do ${company?.company_name || "Depósito Araucária"}`} 
+            className="aspect-[4/3] size-full rounded-lg object-cover" 
+            width={1200} 
+            height={900}
+          />
+          <div>
+            <p className="eyebrow">{company?.company_name || "Depósito Araucária"}</p>
+            <h1 className="display-title">MAIS QUE UMA LOJA.<br/><span>UM PARCEIRO PARA SUA OBRA.</span></h1>
+            <p className="mt-6 text-lg text-muted-foreground">
+              Qualidade, variedade e atendimento de verdade para quem constrói, reforma ou cuida da casa.
+            </p>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Button asChild variant="brand" size="lg">
+                <a href={company?.google_maps_url || "https://maps.google.com"} target="_blank" rel="noreferrer">Como chegar</a>
+              </Button>
+              <Button asChild variant="outline" size="lg">
+                <a href={company?.instagram_url || "https://instagram.com/depositoaraucaria"} target="_blank" rel="noreferrer">Ver Instagram</a>
+              </Button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </PageShell>
+  );
+}

@@ -1,5 +1,179 @@
-import { useState } from "react"; import { Link, useNavigate } from "@tanstack/react-router"; import { Menu, X, Search, ClipboardList, LogIn, LogOut, MessageCircle, Instagram, MapPin, Phone } from "lucide-react"; import { Button } from "@/components/ui/button"; import { supabase } from "@/integrations/supabase/client"; import { useStore } from "@/lib/store"; import { whatsappUrl } from "@/lib/catalog"; import { Brand } from "./Brand";
-const nav=[['Início','/'],['Produtos','/produtos'],['Categorias','/categorias'],['Ofertas','/ofertas'],['Sobre','/sobre'],['Contato','/contato']] as const;
-export function Header(){const [open,setOpen]=useState(false); const {list,session,isAdmin,company}=useStore(); const navigate=useNavigate(); const logout=async()=>{await supabase.auth.signOut(); await navigate({to:"/"});}; return <header className="sticky top-0 z-50 border-b border-header-line bg-header text-header-foreground"><div className="container-site flex h-20 items-center justify-between gap-4"><Link to="/" aria-label="Depósito Araucária"><Brand compact/></Link><nav className="hidden items-center gap-5 lg:flex">{nav.map(([n,to])=><Link key={to} to={to} className="text-xs font-bold uppercase transition-colors hover:text-primary" activeProps={{className:"text-primary"}}>{n}</Link>)}</nav><div className="hidden items-center gap-1 md:flex"><Button asChild variant="headerIcon" size="icon"><Link to="/produtos" search={{q:""}} aria-label="Pesquisar"><Search/></Link></Button><Button asChild variant="headerGhost"><Link to="/minha-lista"><ClipboardList/> Minha Lista <span className="rounded-full bg-primary px-2 py-0.5 text-[10px] text-primary-foreground">{list.reduce((a,i)=>a+i.quantity,0)}</span></Link></Button>{session?<><Button asChild variant="headerGhost"><Link to={isAdmin?"/admin":"/"}>{isAdmin?"Admin":"Conta"}</Link></Button><Button variant="headerIcon" size="icon" onClick={logout} aria-label="Sair"><LogOut/></Button></>:<Button asChild variant="headerGhost"><Link to="/login"><LogIn/> Login</Link></Button>}<Button asChild variant="brand"><a href={whatsappUrl(company?.whatsapp,"Olá! Vim pelo site do Depósito Araucária e gostaria de solicitar um orçamento.")} target="_blank" rel="noreferrer">Pedir orçamento</a></Button></div><Button variant="headerIcon" size="icon" className="md:hidden" onClick={()=>setOpen(!open)} aria-label="Abrir menu">{open?<X/>:<Menu/>}</Button></div>{open&&<nav className="border-t border-header-line bg-header px-5 py-5 md:hidden">{nav.map(([n,to])=><Link key={to} to={to} onClick={()=>setOpen(false)} className="block border-b border-header-line py-3 text-sm font-bold uppercase">{n}</Link>)}<Link to="/minha-lista" onClick={()=>setOpen(false)} className="block py-3 font-bold uppercase">Minha Lista ({list.length})</Link><Link to="/login" onClick={()=>setOpen(false)} className="block py-3 font-bold uppercase">Login</Link></nav>}</header>}
-export function Footer(){const {company,categories}=useStore(); return <footer className="bg-footer text-footer-foreground"><div className="container-site grid gap-10 py-14 md:grid-cols-2 lg:grid-cols-4"><div><Brand/><p className="mt-5 max-w-xs text-sm text-footer-muted">Materiais para obra e reforma. Qualidade, variedade e atendimento de verdade.</p></div><div><h3 className="footer-title">Navegação</h3>{nav.slice(0,5).map(([n,to])=><Link className="footer-link" key={to} to={to}>{n}</Link>)}</div><div><h3 className="footer-title">Categorias</h3>{categories.slice(0,6).map(c=><Link className="footer-link" key={c.id} to="/produtos" search={{categoria:c.slug}}>{c.name}</Link>)}</div><div><h3 className="footer-title">Contato</h3><p className="footer-info"><Phone/> {company?.phone}</p><p className="footer-info"><Instagram/> {company?.instagram_handle}</p><p className="footer-info"><MapPin/> {company?.address_line}<br/>{company?.neighborhood} · {company?.city_state}</p><p className="mt-4 text-xs text-footer-muted">Seg a Sex: 08h às 18h<br/>Sábado: 08h às 12h · Domingo: Fechado</p></div></div><div className="border-t border-footer-line"><div className="container-site py-5 text-xs text-footer-muted">© Depósito Araucária. Todos os direitos reservados.</div></div></footer>}
-export function FloatingWhatsApp(){const {company}=useStore(); return <a href={whatsappUrl(company?.whatsapp,"Olá! Vim pelo site do Depósito Araucária e gostaria de atendimento.")} target="_blank" rel="noreferrer" className="fixed bottom-5 right-5 z-40 flex h-14 items-center gap-2 rounded-full bg-primary px-4 font-extrabold text-primary-foreground shadow-lg transition-transform hover:scale-105" aria-label="Fale conosco pelo WhatsApp"><MessageCircle/><span className="hidden sm:inline">Fale conosco</span></a>}
+import { useState } from "react";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { Menu, X, Search, ClipboardList, LogIn, LogOut, MessageCircle, Instagram, MapPin, Phone } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
+import { useStore } from "@/lib/store";
+import { whatsappUrl, getBusinessHours } from "@/lib/catalog";
+import { Brand } from "./Brand";
+
+const nav = [
+  ['Início', '/'],
+  ['Produtos', '/produtos'],
+  ['Categorias', '/categorias'],
+  ['Ofertas', '/ofertas'],
+  ['Sobre', '/sobre'],
+  ['Contato', '/contato']
+] as const;
+
+export function Header() {
+  const [open, setOpen] = useState(false);
+  const { list, session, isAdmin, company } = useStore();
+  const navigate = useNavigate();
+
+  const logout = async () => {
+    await supabase.auth.signOut();
+    await navigate({ to: "/" });
+  };
+
+  return (
+    <header className="sticky top-0 z-50 border-b border-header-line bg-header text-header-foreground">
+      <div className="container-site flex h-20 items-center justify-between gap-4">
+        <Link to="/" aria-label="Depósito Araucária">
+          <Brand compact />
+        </Link>
+        
+        <nav className="hidden items-center gap-5 lg:flex">
+          {nav.map(([n, to]) => (
+            <Link 
+              key={to} 
+              to={to} 
+              className="text-xs font-bold uppercase transition-colors hover:text-primary" 
+              activeProps={{ className: "text-primary" }}
+            >
+              {n}
+            </Link>
+          ))}
+        </nav>
+
+        <div className="flex items-center gap-1">
+          <div className="hidden items-center gap-1 sm:flex">
+            <Button asChild variant="headerIcon" size="icon">
+              <Link to="/produtos" search={{ q: "", categoria: "" }} aria-label="Pesquisar">
+                <Search />
+              </Link>
+            </Button>
+            
+            <Button asChild variant="headerGhost">
+              <Link to="/minha-lista">
+                <ClipboardList /> 
+                <span className="hidden md:inline">Minha Lista</span>
+                <span className="ml-1 rounded-full bg-primary px-2 py-0.5 text-[10px] text-primary-foreground">
+                  {list.reduce((a, i) => a + i.quantity, 0)}
+                </span>
+              </Link>
+            </Button>
+
+            {session ? (
+              <>
+                <Button asChild variant="headerGhost">
+                  <Link to={isAdmin ? "/admin" : "/"}>{isAdmin ? "Admin" : "Conta"}</Link>
+                </Button>
+                <Button variant="headerIcon" size="icon" onClick={logout} aria-label="Sair">
+                  <LogOut />
+                </Button>
+              </>
+            ) : (
+              <Button asChild variant="headerGhost">
+                <Link to="/login"><LogIn /> Login</Link>
+              </Button>
+            )}
+          </div>
+
+          <Button asChild variant="brand" className="hidden sm:flex">
+            <a href={whatsappUrl(company?.whatsapp, "Olá! Vim pelo site do Depósito Araucária e gostaria de solicitar um orçamento.")} target="_blank" rel="noreferrer">
+              Orçamento
+            </a>
+          </Button>
+
+          <Button variant="headerIcon" size="icon" className="lg:hidden" onClick={() => setOpen(!open)} aria-label={open ? "Fechar menu" : "Abrir menu"}>
+            {open ? <X /> : <Menu />}
+          </Button>
+        </div>
+      </div>
+
+      {open && (
+        <nav className="border-t border-header-line bg-header px-5 py-5 lg:hidden animate-in slide-in-from-top-2 duration-200">
+          {nav.map(([n, to]) => (
+            <Link key={to} to={to} onClick={() => setOpen(false)} className="block border-b border-header-line py-3 text-sm font-bold uppercase">
+              {n}
+            </Link>
+          ))}
+          <div className="mt-4 flex flex-col gap-2">
+            <Link to="/minha-lista" onClick={() => setOpen(false)} className="block py-3 font-bold uppercase">
+              Minha Lista ({list.length})
+            </Link>
+            {session ? <div className="flex items-center justify-between"><Link to={isAdmin ? "/admin" : "/"} onClick={() => setOpen(false)} className="py-3 font-bold uppercase">{isAdmin ? "Admin" : "Conta"}</Link><Button variant="headerGhost" onClick={logout}><LogOut /> Sair</Button></div> : <Link to="/login" onClick={() => setOpen(false)} className="block py-3 font-bold uppercase">Login</Link>}
+            <Button asChild variant="brand"><a href={whatsappUrl(company?.whatsapp, "Olá! Vim pelo site do Depósito Araucária e gostaria de solicitar um orçamento.")} target="_blank" rel="noreferrer">Pedir orçamento</a></Button>
+          </div>
+        </nav>
+      )}
+    </header>
+  );
+}
+
+export function Footer() {
+  const { company, categories } = useStore();
+  const hours = getBusinessHours(company?.business_hours);
+  return (
+    <footer className="bg-footer text-footer-foreground">
+      <div className="container-site grid gap-10 py-14 md:grid-cols-2 lg:grid-cols-4">
+        <div>
+          <Brand />
+          <p className="mt-5 max-w-xs text-sm text-footer-muted">
+            Materiais para obra e reforma em Sarandi-PR. Qualidade, variedade e atendimento de verdade.
+          </p>
+        </div>
+        
+        <div>
+          <h3 className="footer-title">Navegação</h3>
+          {nav.slice(0, 5).map(([n, to]) => (
+            <Link className="footer-link" key={to} to={to}>{n}</Link>
+          ))}
+        </div>
+
+        <div>
+          <h3 className="footer-title">Categorias</h3>
+          {categories.slice(0, 6).map(c => (
+            <Link className="footer-link" key={c.id} to="/produtos" search={{ q: "", categoria: c.slug }}>{c.name}</Link>
+          ))}
+        </div>
+
+        <div>
+          <h3 className="footer-title">Contato</h3>
+          <p className="footer-info"><Phone /> {company?.phone}</p>
+          <p className="footer-info"><Instagram /> {company?.instagram_handle}</p>
+          <p className="footer-info">
+            <MapPin /> {company?.address_line}<br />
+            {company?.neighborhood} · {company?.city_state}
+          </p>
+          <p className="mt-4 text-xs text-footer-muted">
+            Seg a Sex: {hours.weekdays}<br />
+            Sábado: {hours.saturday} · Domingo: {hours.sunday}
+          </p>
+        </div>
+      </div>
+      <div className="border-t border-footer-line">
+        <div className="container-site py-5 text-xs text-footer-muted">
+          © {new Date().getFullYear()} Depósito Araucária. Todos os direitos reservados.
+        </div>
+      </div>
+    </footer>
+  );
+}
+
+export function FloatingWhatsApp() {
+  const { company } = useStore();
+  return (
+    <a 
+      href={whatsappUrl(company?.whatsapp, "Olá! Vim pelo site do Depósito Araucária e gostaria de atendimento.")} 
+      target="_blank" 
+      rel="noreferrer" 
+      className="fixed bottom-5 right-5 z-40 flex h-14 items-center gap-2 rounded-full bg-primary px-4 font-extrabold text-primary-foreground shadow-lg transition-transform hover:scale-105" 
+      aria-label="Fale conosco pelo WhatsApp"
+    >
+      <MessageCircle />
+      <span className="hidden sm:inline">Fale conosco</span>
+    </a>
+  );
+}

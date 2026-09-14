@@ -7,7 +7,7 @@ import { useStore } from "@/lib/store";
 import { effectivePrice, formatPrice, whatsappUrl } from "@/lib/catalog";
 import { supabase } from "@/integrations/supabase/client";
 
-export const Route = createFileRoute("/minha-lista")({ component: List });
+export const Route = createFileRoute("/minha-lista")({ head: () => ({ meta: [{ title: "Minha Lista | Depósito Araucária" }, { name: "description", content: "Gerencie sua lista de materiais e solicite um orçamento rápido pelo WhatsApp." }, { property: "og:title", content: "Minha Lista | Depósito Araucária" }, { property: "og:description", content: "Organize os materiais para sua obra e peça um orçamento." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }] }), component: List });
 
 function List() {
   const { list, updateQuantity, removeFromList, clearList, company, session } = useStore();

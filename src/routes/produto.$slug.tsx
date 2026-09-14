@@ -9,15 +9,149 @@ import { ProductCard } from "@/components/site/ProductCard";
 import { supabase } from "@/integrations/supabase/client";
 import catalog from "@/assets/catalog-collage.jpg";
 
-export const Route = createFileRoute("/produto/$slug")({ component: Detail });
+export const Route = createFileRoute("/produto/$slug")({
+  loader: async ({ params }) => {
+    const { data } = await supabase
+      .from("products")
+      .select("*, categories(name, slug)")
+      .eq("slug", params.slug)
+      .single();
+    return data;
+  },
+  head: ({ loaderData }) => ({
+    meta: [
+      { title: loaderData ? `${loaderData.name} | Depósito Araucária` : "Produto | Depósito Araucária" },
+      { name: "description", content: loaderData?.short_description || loaderData?.description || "Confira detalhes, preços e disponibilidade." },
+      { property: "og:title", content: loaderData ? `${loaderData.name} | Depósito Araucária` : "Produto | Depósito Araucária" },
+      { property: "og:description", content: loaderData?.short_description || "Confira detalhes deste produto no Depósito Araucária." },
+      ...(loaderData?.main_image_url?.startsWith("https://") ? [{ property: "og:image", content: loaderData.main_image_url }, { name: "twitter:image", content: loaderData.main_image_url }] : []),
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
+  component: Detail 
+});
 
 function Detail() {
-  const { slug } = Route.useParams(); const { products, addToList, company } = useStore();
-  const [qty, setQty] = useState(1); const [images, setImages] = useState<string[]>([]); const [selected, setSelected] = useState(0);
-  const product = products.find((item) => item.slug === slug);
-  useEffect(() => { if (!product) return; void supabase.from("product_images").select("storage_path, sort_order").eq("product_id", product.id).order("sort_order").then(({ data }) => setImages((data || []).map((image) => supabase.storage.from("catalog-assets").getPublicUrl(image.storage_path).data.publicUrl))); }, [product?.id]);
+  const product = Route.useLoaderData();
+  const { products, addToList, company } = useStore();
+  const [qty, setQty] = useState(1); 
+  const [images, setImages] = useState<string[]>([]); 
+  const [selected, setSelected] = useState(0);
+
+  useEffect(() => { 
+    if (!product) return; 
+    void supabase
+      .from("product_images")
+      .select("storage_path, sort_order")
+      .eq("product_id", product.id)
+      .order("sort_order")
+      .then(({ data }) => setImages((data || []).map((image) => supabase.storage.from("catalog-assets").getPublicUrl(image.storage_path).data.publicUrl))); 
+  }, [product?.id]);
+
   const gallery = useMemo(() => Array.from(new Set([product?.main_image_url || catalog, ...images])), [product?.main_image_url, images]);
-  if (!product) return <PageShell><div className="empty-state min-h-[60vh]"><h1>Produto não encontrado</h1><Button asChild><Link to="/produtos">Voltar aos produtos</Link></Button></div></PageShell>;
-  const label = stockLabel(product); const related = products.filter((item) => item.category_id === product.category_id && item.id !== product.id).slice(0, 4);
-  return <PageShell><section className="page-section"><div className="container-site"><div className="grid gap-10 lg:grid-cols-2"><div><div className="relative aspect-square overflow-hidden rounded-lg bg-muted"><img src={gallery[selected] || catalog} alt={product.name} className="size-full object-cover" width={800} height={800}/>{product.demonstration && <span className="absolute left-4 top-4 bg-foreground px-3 py-2 text-xs font-black uppercase text-background">Demonstração</span>}</div>{gallery.length > 1 && <div className="mt-3 flex gap-2 overflow-x-auto">{gallery.map((image, index) => <button type="button" key={image} onClick={() => setSelected(index)} className={`size-16 shrink-0 overflow-hidden rounded border-2 ${selected === index ? "border-primary" : "border-transparent"}`}><img src={image} alt={`${product.name} ${index + 1}`} className="size-full object-cover"/></button>)}</div>}</div><div><p className="eyebrow">{product.categories?.name}</p><h1 className="display-title">{product.name}</h1><p className="mt-2 text-sm font-bold uppercase text-muted-foreground">{product.brand} · SKU {product.sku}</p><div className="mt-7 border-y border-border py-6">{product.promotional_price && product.price && <p className="text-lg text-muted-foreground line-through">{formatPrice(product.price)}</p>}<p className="text-4xl font-black">{formatPrice(effectivePrice(product))}<small className="ml-2 text-sm text-muted-foreground">/{product.unit}</small></p><p className="mt-2 text-sm font-black text-stock">{label}</p></div><p className="mt-6 leading-7 text-muted-foreground">{product.description || product.short_description}</p><div className="mt-8 flex flex-wrap gap-3"><div className="flex h-12 items-center rounded-md border border-input"><Button variant="ghost" size="icon" onClick={() => setQty(Math.max(1, qty - 1))}><Minus/></Button><strong className="w-10 text-center">{qty}</strong><Button variant="ghost" size="icon" onClick={() => setQty(qty + 1)}><Plus/></Button></div><Button variant="brand" size="lg" onClick={() => addToList(product, qty)} disabled={label === "ESGOTADO"}>Adicionar à lista</Button><Button asChild variant="dark" size="lg"><a href={whatsappUrl(company?.whatsapp, `Olá! Gostaria de solicitar ${qty} ${product.unit} de ${product.name}.`)} target="_blank" rel="noreferrer"><MessageCircle/> Solicitar</a></Button></div>{Object.keys(product.specifications || {}).length > 0 && <div className="mt-10"><h2 className="text-xl font-black uppercase">Especificações</h2><dl className="mt-4 divide-y divide-border">{Object.entries(product.specifications as Record<string, string>).map(([key, value]) => <div className="flex justify-between py-3" key={key}><dt className="font-bold">{key}</dt><dd className="text-muted-foreground">{value}</dd></div>)}</dl></div>}</div></div>{related.length > 0 && <div className="mt-16"><h2 className="section-title">VOCÊ TAMBÉM PODE <span>PRECISAR</span></h2><div className="product-grid mt-7">{related.map((item) => <ProductCard key={item.id} product={item}/>)}</div></div>}</div></section></PageShell>;
+
+  if (!product) return (
+    <PageShell>
+      <div className="empty-state min-h-[60vh]">
+        <h1>Produto não encontrado</h1>
+        <Button asChild><Link to="/produtos">Voltar aos produtos</Link></Button>
+      </div>
+    </PageShell>
+  );
+
+  const label = stockLabel(product); 
+  const related = products.filter((item) => item.category_id === product.category_id && item.id !== product.id).slice(0, 4);
+
+  return (
+    <PageShell>
+      <section className="page-section">
+        <div className="container-site">
+          <div className="grid gap-10 lg:grid-cols-2">
+            <div>
+              <div className="relative aspect-square overflow-hidden rounded-lg bg-muted">
+                <img src={gallery[selected] || catalog} alt={product.name} className="size-full object-cover" width={800} height={800}/>
+                {product.demonstration && (
+                  <span className="absolute left-4 top-4 bg-foreground px-3 py-2 text-xs font-black uppercase text-background">
+                    Demonstração
+                  </span>
+                )}
+              </div>
+              {gallery.length > 1 && (
+                <div className="mt-3 flex gap-2 overflow-x-auto">
+                  {gallery.map((image, index) => (
+                    <button 
+                      type="button" 
+                      key={image} 
+                      onClick={() => setSelected(index)} 
+                      className={`size-16 shrink-0 overflow-hidden rounded border-2 ${selected === index ? "border-primary" : "border-transparent"}`}
+                    >
+                      <img src={image} alt={`${product.name} ${index + 1}`} className="size-full object-cover"/>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div>
+              <p className="eyebrow">{product.categories?.name}</p>
+              <h1 className="display-title">{product.name}</h1>
+              <p className="mt-2 text-sm font-bold uppercase text-muted-foreground">{product.brand} · SKU {product.sku}</p>
+              
+              <div className="mt-7 border-y border-border py-6">
+                {product.promotional_price && product.price && (
+                  <p className="text-lg text-muted-foreground line-through">{formatPrice(product.price)}</p>
+                )}
+                <p className="text-4xl font-black">
+                  {formatPrice(effectivePrice(product))}
+                  <small className="ml-2 text-sm text-muted-foreground">/{product.unit}</small>
+                </p>
+                <p className={`mt-2 text-sm font-black ${label === "ESGOTADO" ? "text-destructive" : "text-stock"}`}>{label}</p>
+              </div>
+
+              <p className="mt-6 leading-7 text-muted-foreground">{product.description || product.short_description}</p>
+              
+              <div className="mt-8 flex flex-wrap gap-3">
+                <div className="flex h-12 items-center rounded-md border border-input">
+                  <Button variant="ghost" size="icon" onClick={() => setQty(Math.max(1, qty - 1))}><Minus/></Button>
+                  <strong className="w-10 text-center">{qty}</strong>
+                  <Button variant="ghost" size="icon" onClick={() => setQty(qty + 1)}><Plus/></Button>
+                </div>
+                <Button variant="brand" size="lg" onClick={() => addToList(product as any, qty)} disabled={label === "ESGOTADO"}>
+                  Adicionar à lista
+                </Button>
+                <Button asChild variant="dark" size="lg">
+                  <a href={whatsappUrl(company?.whatsapp, `Olá! Gostaria de solicitar ${qty} ${product.unit} de ${product.name}.`)} target="_blank" rel="noreferrer">
+                    <MessageCircle/> Solicitar
+                  </a>
+                </Button>
+              </div>
+
+              {Object.keys((product.specifications as object) || {}).length > 0 && (
+                <div className="mt-10">
+                  <h2 className="text-xl font-black uppercase">Especificações</h2>
+                  <dl className="mt-4 divide-y divide-border">
+                    {Object.entries((product.specifications as Record<string, string>) || {}).map(([key, value]) => (
+                      <div className="flex justify-between py-3" key={key}>
+                        <dt className="font-bold">{key}</dt>
+                        <dd className="text-muted-foreground">{value}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {related.length > 0 && (
+            <div className="mt-16">
+              <h2 className="section-title">VOCÊ TAMBÉM PODE <span>PRECISAR</span></h2>
+              <div className="product-grid mt-7">
+                {related.map((item) => <ProductCard key={item.id} product={item}/>)}
+              </div>
+            </div>
+          )}
+        </div>
+      </section>
+    </PageShell>
+  );
 }
