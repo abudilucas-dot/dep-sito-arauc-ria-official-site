@@ -82,6 +82,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "description", content: "Materiais para obra e reforma em Sarandi-PR." },
       { name: "author", content: "Depósito Araucária" },
       { property: "og:type", content: "website" },
+      { property: "og:site_name", content: "Depósito Araucária" },
+      { property: "og:locale", content: "pt_BR" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [
