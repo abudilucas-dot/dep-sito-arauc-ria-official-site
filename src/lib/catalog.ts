@@ -9,3 +9,10 @@ export const formatPrice = (value: number | null) => value == null ? "Consulte" 
 export const effectivePrice = (product: Product) => product.promotional_price ?? product.price;
 export const stockLabel = (product: Product) => product.stock_quantity === 0 ? "ESGOTADO" : product.stock_quantity <= product.minimum_stock ? "ÚLTIMAS UNIDADES" : "EM ESTOQUE";
 export const whatsappUrl = (phone: string | null | undefined, message: string) => `https://wa.me/${(phone || "554432640413").replace(/\D/g, "")}?text=${encodeURIComponent(message)}`;
+
+export const BUSINESS_HOURS = {
+  weekdays: "08h às 18h",
+  saturday: "08h às 12h",
+  sunday: "Fechado",
+  full: "Seg a Sex: 08h às 18h · Sábado: 08h às 12h · Domingo: Fechado"
+};
