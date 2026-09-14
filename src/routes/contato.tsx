@@ -4,7 +4,7 @@ import { Instagram, MapPin, MessageCircle, Phone, Clock } from "lucide-react";
 import { PageShell } from "@/components/site/PageShell"; 
 import { Button } from "@/components/ui/button"; 
 import { useStore } from "@/lib/store"; 
-import { whatsappUrl, BUSINESS_HOURS } from "@/lib/catalog";
+import { whatsappUrl, getBusinessHours } from "@/lib/catalog";
 
 export const Route = createFileRoute("/contato")({
   head: () => ({
@@ -22,6 +22,7 @@ export const Route = createFileRoute("/contato")({
 
 function Contact() {
   const { company } = useStore();
+  const hours = getBusinessHours(company?.business_hours);
   const [f, setF] = useState({ name: "", phone: "", email: "", subject: "", message: "" });
   
   const submit = (e: React.FormEvent) => {
@@ -34,7 +35,7 @@ function Contact() {
     [Phone, "Telefone", company?.phone || "44 3264-0413"],
     [Instagram, "Instagram", company?.instagram_handle || "@depositoaraucaria"],
     [MapPin, "Endereço", `${company?.address_line || "Av. Araucária"} · ${company?.city_state || "Sarandi-PR"}`],
-    [Clock, "Horários", BUSINESS_HOURS.full]
+    [Clock, "Horários", `Seg–Sex ${hours.weekdays} · Sáb ${hours.saturday} · Domingo ${hours.sunday}`]
   ] as const;
 
   return (

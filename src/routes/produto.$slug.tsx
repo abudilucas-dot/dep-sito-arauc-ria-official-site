@@ -24,7 +24,7 @@ export const Route = createFileRoute("/produto/$slug")({
       { name: "description", content: loaderData?.short_description || loaderData?.description || "Confira detalhes, preços e disponibilidade." },
       { property: "og:title", content: loaderData ? `${loaderData.name} | Depósito Araucária` : "Produto | Depósito Araucária" },
       { property: "og:description", content: loaderData?.short_description || "Confira detalhes deste produto no Depósito Araucária." },
-      { property: "og:image", content: loaderData?.main_image_url || "" },
+      ...(loaderData?.main_image_url?.startsWith("https://") ? [{ property: "og:image", content: loaderData.main_image_url }, { name: "twitter:image", content: loaderData.main_image_url }] : []),
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],

@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { PageShell } from "@/components/site/PageShell";
 import { ProductCard } from "@/components/site/ProductCard";
 import { useStore } from "@/lib/store";
-import { BUSINESS_HOURS } from "@/lib/catalog";
+import { getBusinessHours } from "@/lib/catalog";
 import hero from "@/assets/araucaria-hero.jpg";
 import facade from "@/assets/store-facade.jpg";
 
@@ -29,6 +29,7 @@ function Home() {
   const { products, categories, company } = useStore();
   const [q, setQ] = useState("");
   const navigate = useNavigate();
+  const hours = getBusinessHours(company?.business_hours);
 
   const search = (event: React.FormEvent) => { 
     event.preventDefault(); 
@@ -43,7 +44,7 @@ function Home() {
         <div className="hero-stripe"/>
         <div className="container-site relative z-10 flex min-h-[660px] items-center py-16">
           <div className="max-w-3xl text-header-foreground">
-            <p className="eyebrow">{company?.name || "Depósito Araucária"} · {company?.city_state || "Sarandi-PR"}</p>
+            <p className="eyebrow">{company?.company_name || "Depósito Araucária"} · {company?.city_state || "Sarandi-PR"}</p>
             <h1>TUDO PARA SUA<br/><span>OBRA E REFORMA.</span></h1>
             <p className="mt-6 max-w-xl text-lg text-header-muted">
               Materiais para construção, reforma e manutenção em um só lugar.
@@ -142,7 +143,7 @@ function Home() {
           <div className="relative">
             <img 
               src={facade} 
-              alt={`Fachada do ${company?.name || "Depósito Araucária"}`} 
+              alt={`Fachada do ${company?.company_name || "Depósito Araucária"}`} 
               className="aspect-[4/3] size-full rounded-lg object-cover" 
               width={1200} 
               height={900}
@@ -152,7 +153,7 @@ function Home() {
             </span>
           </div>
           <div>
-            <p className="eyebrow">{company?.name || "Depósito Araucária"}</p>
+            <p className="eyebrow">{company?.company_name || "Depósito Araucária"}</p>
             <h2 className="display-title">MAIS QUE UMA LOJA.<br/><span>UM PARCEIRO PARA SUA OBRA.</span></h2>
             <p className="mt-5 text-lg text-muted-foreground">
               Da fundação ao acabamento, conte com uma equipe pronta para ajudar você a encontrar a solução certa.
@@ -183,9 +184,9 @@ function Home() {
             <Clock className="size-8 text-primary"/>
             <h3 className="mt-4 text-lg font-black uppercase">Horário de atendimento</h3>
             <p className="mt-3 text-sm leading-7 text-location-muted">
-              Segunda a sexta: {BUSINESS_HOURS.weekdays}<br/>
-              Sábado: {BUSINESS_HOURS.saturday}<br/>
-              Domingo: {BUSINESS_HOURS.sunday.toLowerCase()}
+              Segunda a sexta: {hours.weekdays}<br/>
+              Sábado: {hours.saturday}<br/>
+              Domingo: {hours.sunday.toLowerCase()}
             </p>
           </div>
         </div>

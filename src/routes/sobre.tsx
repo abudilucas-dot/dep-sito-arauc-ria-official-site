@@ -26,13 +26,13 @@ function About() {
         <div className="container-site grid items-center gap-10 lg:grid-cols-2">
           <img 
             src={facade} 
-            alt={`Fachada do ${company?.name || "Depósito Araucária"}`} 
+            alt={`Fachada do ${company?.company_name || "Depósito Araucária"}`} 
             className="aspect-[4/3] size-full rounded-lg object-cover" 
             width={1200} 
             height={900}
           />
           <div>
-            <p className="eyebrow">{company?.name || "Depósito Araucária"}</p>
+            <p className="eyebrow">{company?.company_name || "Depósito Araucária"}</p>
             <h1 className="display-title">MAIS QUE UMA LOJA.<br/><span>UM PARCEIRO PARA SUA OBRA.</span></h1>
             <p className="mt-6 text-lg text-muted-foreground">
               Qualidade, variedade e atendimento de verdade para quem constrói, reforma ou cuida da casa.

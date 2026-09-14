@@ -4,7 +4,7 @@ import { Menu, X, Search, ClipboardList, LogIn, LogOut, MessageCircle, Instagram
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useStore } from "@/lib/store";
-import { whatsappUrl, BUSINESS_HOURS } from "@/lib/catalog";
+import { whatsappUrl, getBusinessHours } from "@/lib/catalog";
 import { Brand } from "./Brand";
 
 const nav = [
@@ -49,7 +49,7 @@ export function Header() {
         <div className="flex items-center gap-1">
           <div className="hidden items-center gap-1 sm:flex">
             <Button asChild variant="headerIcon" size="icon">
-              <Link to="/produtos" search={{ q: "" }} aria-label="Pesquisar">
+              <Link to="/produtos" search={{ q: "", categoria: "" }} aria-label="Pesquisar">
                 <Search />
               </Link>
             </Button>
@@ -99,13 +99,12 @@ export function Header() {
               {n}
             </Link>
           ))}
-          <div className="mt-4 flex flex-col gap-2 sm:hidden">
+          <div className="mt-4 flex flex-col gap-2">
             <Link to="/minha-lista" onClick={() => setOpen(false)} className="block py-3 font-bold uppercase">
               Minha Lista ({list.length})
             </Link>
-            <Link to="/login" onClick={() => setOpen(false)} className="block py-3 font-bold uppercase">
-              Login
-            </Link>
+            {session ? <div className="flex items-center justify-between"><Link to={isAdmin ? "/admin" : "/"} onClick={() => setOpen(false)} className="py-3 font-bold uppercase">{isAdmin ? "Admin" : "Conta"}</Link><Button variant="headerGhost" onClick={logout}><LogOut /> Sair</Button></div> : <Link to="/login" onClick={() => setOpen(false)} className="block py-3 font-bold uppercase">Login</Link>}
+            <Button asChild variant="brand"><a href={whatsappUrl(company?.whatsapp, "Olá! Vim pelo site do Depósito Araucária e gostaria de solicitar um orçamento.")} target="_blank" rel="noreferrer">Pedir orçamento</a></Button>
           </div>
         </nav>
       )}
@@ -115,13 +114,14 @@ export function Header() {
 
 export function Footer() {
   const { company, categories } = useStore();
+  const hours = getBusinessHours(company?.business_hours);
   return (
     <footer className="bg-footer text-footer-foreground">
       <div className="container-site grid gap-10 py-14 md:grid-cols-2 lg:grid-cols-4">
         <div>
           <Brand />
           <p className="mt-5 max-w-xs text-sm text-footer-muted">
-            {company?.description || "Materiais para obra e reforma em Sarandi-PR. Qualidade, variedade e atendimento de verdade."}
+            Materiais para obra e reforma em Sarandi-PR. Qualidade, variedade e atendimento de verdade.
           </p>
         </div>
         
@@ -135,7 +135,7 @@ export function Footer() {
         <div>
           <h3 className="footer-title">Categorias</h3>
           {categories.slice(0, 6).map(c => (
-            <Link className="footer-link" key={c.id} to="/produtos" search={{ categoria: c.slug }}>{c.name}</Link>
+            <Link className="footer-link" key={c.id} to="/produtos" search={{ q: "", categoria: c.slug }}>{c.name}</Link>
           ))}
         </div>
 
@@ -148,8 +148,8 @@ export function Footer() {
             {company?.neighborhood} · {company?.city_state}
           </p>
           <p className="mt-4 text-xs text-footer-muted">
-            Seg a Sex: {BUSINESS_HOURS.weekdays}<br />
-            Sábado: {BUSINESS_HOURS.saturday} · Domingo: {BUSINESS_HOURS.sunday}
+            Seg a Sex: {hours.weekdays}<br />
+            Sábado: {hours.saturday} · Domingo: {hours.sunday}
           </p>
         </div>
       </div>
