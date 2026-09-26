@@ -2,7 +2,7 @@ import type { Database } from "@/integrations/supabase/types";
 
 export type Product = Database["public"]["Tables"]["products"]["Row"] & { categories?: { name: string; slug: string } | null };
 export type Category = Database["public"]["Tables"]["categories"]["Row"];
-export type Company = Database["public"]["Tables"]["company_settings"]["Row"];
+export type Company = Database["public"]["Tables"]["company_settings"]["Row"]; export type Banner = Database["public"]["Tables"]["banners"]["Row"];
 export type ListItem = { product: Product; quantity: number };
 
 export const formatPrice = (value: number | null) => value == null ? "Consulte" : new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
