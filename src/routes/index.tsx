@@ -71,7 +71,7 @@ function Home() {
             <label className="relative flex-1">
               <Search className="absolute left-4 top-3.5 size-5 text-muted-foreground"/>
               <input 
-                className="input h-12 pl-12" 
+                className="input h-12" style={{ paddingLeft: "3.5rem" }} 
                 placeholder="Pesquisar cimento, ferramentas, hidráulica..." 
                 value={q} 
                 onChange={(event) => setQ(event.target.value)}
