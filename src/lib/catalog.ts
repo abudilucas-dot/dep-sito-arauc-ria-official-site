@@ -11,7 +11,7 @@ export const stockLabel = (product: Product) => product.stock_quantity === 0 ? "
 export const whatsappUrl = (phone: string | null | undefined, message: string) => `https://wa.me/${(phone || "554432640413").replace(/\D/g, "")}?text=${encodeURIComponent(message)}`;
 
 export type BusinessHours = { weekdays: string; saturday: string; sunday: string };
-export const BUSINESS_HOURS: BusinessHours = { weekdays: "08:00 às 18:00", saturday: "08:00 às 12:00", sunday: "Fechado" };
+export const BUSINESS_HOURS: BusinessHours = { weekdays: "08:00 às 18:00", saturday: "08:00 às 12:00", sunday: "Domingos (exceto o último): 08:00 às 12:00; último domingo: Fechado" };
 export function getBusinessHours(value: Company["business_hours"] | null | undefined): BusinessHours {
   if (!value || typeof value !== "object" || Array.isArray(value)) return BUSINESS_HOURS;
   return {
