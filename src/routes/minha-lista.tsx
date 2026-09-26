@@ -10,7 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 export const Route = createFileRoute("/minha-lista")({ head: () => ({ meta: [{ title: "Minha Lista | Depósito Araucária" }, { name: "description", content: "Gerencie sua lista de materiais e solicite um orçamento rápido pelo WhatsApp." }, { property: "og:title", content: "Minha Lista | Depósito Araucária" }, { property: "og:description", content: "Organize os materiais para sua obra e peça um orçamento." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }] }), component: List });
 
 function List() {
-  const { list, updateQuantity, removeFromList, clearList, company, session } = useStore();
+  const { list, updateQuantity, removeFromList, clearList, company } = useStore();
   const [customer, setCustomer] = useState({ name: "", phone: "", email: "" });
   const [status, setStatus] = useState("");
   const [busy, setBusy] = useState(false);
@@ -20,15 +20,27 @@ function List() {
   const message = `Olá, Depósito Araucária!\n\nVim pelo site e gostaria de solicitar um orçamento.\n\nMinha lista:\n${list.map((item) => `• ${item.quantity}x ${item.product.name}${effectivePrice(item.product) == null ? " — consultar preço" : ` — ${formatPrice(effectivePrice(item.product))}`}`).join("\n")}\n\nValor estimado pelo site: ${totalLabel}.\nGostaria de confirmar valores, disponibilidade e condições.`;
 
   const requestQuote = async () => {
-    if (!customer.name.trim() || !customer.phone.trim()) { setStatus("Informe seu nome e telefone para enviar o orçamento."); return; }
-    setBusy(true); setStatus("");
-    const { data: quote, error } = await supabase.from("quotes").insert({ user_id: session?.user.id ?? null, customer_name: customer.name.trim(), customer_phone: customer.phone.trim(), customer_email: customer.email.trim() || null, estimated_total: hasUnpricedItems ? null : total, notes: "Solicitado pelo site via Minha Lista." }).select("id").single();
-    if (error || !quote) { setStatus("Não foi possível registrar o pedido agora. Tente novamente."); setBusy(false); return; }
-    const { error: itemsError } = await supabase.from("quote_items").insert(list.map((item) => ({ quote_id: quote.id, product_id: item.product.id, product_name: item.product.name, quantity: item.quantity, unit_price: effectivePrice(item.product) })));
-    if (itemsError) {
-      await supabase.from("quotes").delete().eq("id", quote.id);
-      setStatus("Não foi possível salvar os itens do pedido. Tente novamente."); setBusy(false); return;
+    if (!customer.name.trim() || !customer.phone.trim()) {
+      setStatus("Informe seu nome e telefone para enviar o orçamento.");
+      return;
     }
+
+    setBusy(true);
+    setStatus("");
+    const { error } = await (supabase as any).rpc("create_quote_with_items", {
+      _customer_name: customer.name.trim(),
+      _customer_phone: customer.phone.trim(),
+      _customer_email: customer.email.trim() || null,
+      _items: list.map((item) => ({ product_id: item.product.id, quantity: item.quantity })),
+    });
+
+    if (error) {
+      setStatus("Não foi possível registrar o pedido agora. Tente novamente.");
+      setBusy(false);
+      return;
+    }
+
+    clearList();
     window.location.assign(whatsappUrl(company?.whatsapp, message));
   };
 
