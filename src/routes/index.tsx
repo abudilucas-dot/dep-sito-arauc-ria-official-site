@@ -26,10 +26,10 @@ export const Route = createFileRoute("/")({
 });
 
 function Home() {
-  const { products, categories, company } = useStore();
+  const { products, categories, banners, company } = useStore();
   const [q, setQ] = useState("");
   const navigate = useNavigate();
-  const hours = getBusinessHours(company?.business_hours);
+  const hours = getBusinessHours(company?.business_hours); const activeBanners = banners.filter((banner) => (!banner.starts_at || new Date(banner.starts_at) <= new Date()) && (!banner.ends_at || new Date(banner.ends_at) >= new Date()));
 
   const search = (event: React.FormEvent) => { 
     event.preventDefault(); 
@@ -60,6 +60,7 @@ function Home() {
         </div>
       </section>
 
+      {activeBanners.length > 0 && <section className="bg-muted py-4"><div className="container-site grid gap-4 md:grid-cols-2">{activeBanners.map((banner) => <article key={banner.id} className="overflow-hidden rounded-lg bg-foreground text-background">{banner.image_url && <img src={banner.image_url} alt="" className="h-36 w-full object-cover" loading="lazy" />}<div className="p-5"><h2 className="text-xl font-black uppercase">{banner.title}</h2>{banner.subtitle && <p className="mt-1 text-sm text-background/75">{banner.subtitle}</p>}{banner.link_url && <a className="mt-4 inline-block font-bold text-primary" href={banner.link_url}>{banner.button_label || "Ver oferta"}</a>}</div></article>)}</div></section>}
       <section className="search-band">
         <div className="container-site grid items-center gap-5 py-7 md:grid-cols-[auto_1fr]">
           <div>
