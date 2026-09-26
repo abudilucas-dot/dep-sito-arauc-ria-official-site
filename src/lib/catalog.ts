@@ -15,7 +15,7 @@ export const BUSINESS_HOURS: BusinessHours = { weekdays: "08:00 às 18:00", satu
 export function getBusinessHours(value: Company["business_hours"] | null | undefined): BusinessHours {
   if (!value || typeof value !== "object" || Array.isArray(value)) return BUSINESS_HOURS;
   return {
-    weekdays: typeof value["weekdays"] === "string" ? value["weekdays"] : BUSINESS_HOURS.weekdays,
+    weekdays: typeof value["weekdays"] === "string" ? value["weekdays"] : typeof value["monday_friday"] === "string" ? value["monday_friday"] : BUSINESS_HOURS.weekdays,
     saturday: typeof value["saturday"] === "string" ? value["saturday"] : BUSINESS_HOURS.saturday,
     sunday: typeof value["sunday"] === "string" ? value["sunday"] : BUSINESS_HOURS.sunday,
   };
