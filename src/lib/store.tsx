@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
-import type { Category, Company, ListItem, Product } from "./catalog";
+import type { Banner, Category, Company, ListItem, Product } from "./catalog";
 
 type StoreValue = { products: Product[]; categories: Category[]; banners: Banner[]; company: Company | null; loading: boolean; session: Session | null; isAdmin: boolean; list: ListItem[]; addToList: (p: Product, q?: number) => void; updateQuantity: (id: string, q: number) => void; removeFromList: (id: string) => void; clearList: () => void; refresh: () => Promise<void> };
 const StoreContext = createContext<StoreValue | null>(null);
